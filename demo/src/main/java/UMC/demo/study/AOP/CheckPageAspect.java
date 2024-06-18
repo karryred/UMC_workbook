@@ -24,7 +24,7 @@ public class CheckPageAspect {
         }
 
         if (pageNumber < 1) {
-            throw new IllegalArgumentException("Invalid page number: " + pageNumber);
+            throw new PageHandler(ErrorStatus.INVALID_PAGE_NUMBER);
         }
 
         // pageNumber를 -1 연산하여 args 배열에 다시 반영
