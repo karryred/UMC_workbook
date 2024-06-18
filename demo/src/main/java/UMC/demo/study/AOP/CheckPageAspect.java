@@ -16,27 +16,20 @@ import java.lang.reflect.Parameter;
 @Component
 public class CheckPageAspect {
 
-    @Around("execution(* *(..)) && @annotation(UMC.demo.study.validation.annotation.CheckPage)")
-    public Object checkAndModifyPageParameter(ProceedingJoinPoint joinPoint) throws Throwable {
-        MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
-        Method method = methodSignature.getMethod();
+    @Around("execution(* *(.., @UMC.demo.study.validation.annotation.CheckPage (*), ..)) && args(.., pageNumber)")
+    public Object checkAndModifyPageParameter(ProceedingJoinPoint joinPoint, Integer pageNumber) throws Throwable {
 
-        Parameter[] parameters = method.getParameters();
-        Object[] args = joinPoint.getArgs();
-
-        for (int i = 0; i < parameters.length; i++) {
-            if (parameters[i].isAnnotationPresent(UMC.demo.study.validation.annotation.CheckPage.class)) {
-                Object arg = args[i];
-                if (arg instanceof Integer) {
-                    Integer pageNumber = (Integer) arg;
-                    if (pageNumber < 0) {
-                        throw new IllegalArgumentException("Invalid page number: " + pageNumber);
-                    }
-                    // page - 1 연산 실행
-                    args[i] = pageNumber - 1;
-                }
-            }
+        if (pageNumber == null) {
+            return joinPoint.proceed();
         }
+
+        if (pageNumber < 1) {
+            throw new IllegalArgumentException("Invalid page number: " + pageNumber);
+        }
+
+        // pageNumber를 -1 연산하여 args 배열에 다시 반영
+        Object[] args = joinPoint.getArgs();
+        args[args.length-1]=pageNumber-1;
 
         return joinPoint.proceed(args);
     }
